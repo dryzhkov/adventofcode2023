@@ -28,8 +28,8 @@
         "*.tsx",
         ".meta/*.ts",
         ".meta/*.tsx",
-        "src/01/resistor-color.ts",
-        "src/01/resistor-color.test.ts"
+        "src/01/trebuchet.ts",
+        "src/01/trebuchet.test.ts"
     ],
     "exclude": ["node_modules"]
 }

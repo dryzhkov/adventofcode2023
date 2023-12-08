@@ -1,6 +1,7 @@
 type Card = 'A' | 'K' | 'Q' | 'J' | 'T' | '9' | '8' | '7' | '6' | '5' | '4' | '3' | '2';
 
 const CARD_RANK: Record<Card, number> = {
+    J: 0,
     '2': 1,
     '3': 2,
     '4': 3,
@@ -10,7 +11,6 @@ const CARD_RANK: Record<Card, number> = {
     '8': 7,
     '9': 8,
     T: 9,
-    J: 10,
     Q: 11,
     K: 12,
     A: 13
@@ -64,33 +64,81 @@ function processHand(hand: string): Record<Card, number> {
 
 function labelHand(hand: string): HandLabel {
     const cardCounts = processHand(hand);
+    const jokerCount = cardCounts['J'] !== undefined ? Number(cardCounts['J']) : 0;
     if (Object.keys(cardCounts).length === 1) {
         return 'five of a kind';
     } else if (Object.keys(cardCounts).length === 2) {
         if (Object.keys(cardCounts).some((v) => cardCounts[v] === 4)) {
+            if (jokerCount === 1 || jokerCount === 4) {
+                // JOKER WTF!
+                return 'five of a kind';
+            }
+
             return 'four of a kind';
         } else if (
             Object.keys(cardCounts).some((v) => cardCounts[v] === 3) &&
             Object.keys(cardCounts).some((v) => cardCounts[v] === 2)
         ) {
+            if (jokerCount === 3 || jokerCount === 2) {
+                // JOKER WTF!
+                return 'five of a kind';
+            } else if (
+                jokerCount === 1 &&
+                Object.keys(cardCounts).some((v) => cardCounts[v] === 3)
+            ) {
+                return 'four of a kind';
+            }
             return 'full house';
         } else {
             throw new Error('invalid hand: ' + hand);
         }
     } else if (Object.keys(cardCounts).length === 3) {
         if (Object.keys(cardCounts).some((v) => cardCounts[v] === 3)) {
+            if (jokerCount === 3 || jokerCount === 1) {
+                return 'four of a kind';
+            }
+
+            if (jokerCount === 2 || jokerCount > 3) {
+                throw new Error('should not happen but did');
+            }
             return 'three of a kind';
         } else if (Object.keys(cardCounts).some((v) => cardCounts[v] === 2)) {
+            if (jokerCount === 1) {
+                return 'full house';
+            } else if (jokerCount === 2) {
+                return 'four of a kind';
+            }
+
+            if (jokerCount > 2) {
+                throw new Error('should not happen but did');
+            }
             return 'two pair';
         } else {
             throw new Error('invalid hand: ' + hand);
         }
     } else if (Object.keys(cardCounts).length === 4) {
+        if (jokerCount === 1 || jokerCount === 2) {
+            return 'three of a kind';
+        }
+
+        if (jokerCount > 2) {
+            throw new Error('should not happen but did');
+        }
+
         return 'one pair';
     } else {
         if (Object.keys(cardCounts).length !== 5) {
             throw new Error('invalid hand: ' + hand);
         }
+
+        if (jokerCount === 1) {
+            return 'one pair';
+        }
+
+        if (jokerCount > 1) {
+            throw new Error('should not happen but did');
+        }
+
         return 'high card';
     }
 }

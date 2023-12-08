@@ -7,12 +7,4 @@ describe('part 1', () => {
         console.log(answer);
         expect(true).toBe(true);
     });
-
-    xdescribe('part 2', () => {
-        it('sample', () => {
-            const answer = solvePuzzlePart2();
-            console.log(answer);
-            expect(true).toBe(true);
-        });
-    });
 });

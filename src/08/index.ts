@@ -24,6 +24,25 @@ function parseData(input: string): { turns: Turn[]; map: DessertMap } {
     };
 }
 
+function gcd(a: number, b: number) {
+    return b === 0 ? a : gcd(b, a % b);
+}
+
+function lcm(numbers: number[]) {
+    // Helper function to find the LCM of two numbers
+    function lcmTwoNumbers(a, b) {
+        return Math.abs(a * b) / gcd(a, b);
+    }
+
+    // Iterate through the array and find the LCM step by step
+    let result = 1;
+    for (let i = 0; i < numbers.length; i++) {
+        result = lcmTwoNumbers(result, numbers[i]);
+    }
+
+    return result;
+}
+
 function getSteps(turns: Turn[], map: DessertMap): number {
     let totalSteps = 0;
 
@@ -44,6 +63,8 @@ function getSteps(turns: Turn[], map: DessertMap): number {
 
     console.log(starts);
 
+    const steps: number[] = new Array(starts.length).fill(0);
+
     while (!finished()) {
         const turn = getNextTurn();
         if (turn === undefined) {
@@ -51,13 +72,22 @@ function getSteps(turns: Turn[], map: DessertMap): number {
         }
 
         for (let i = 0; i < starts.length; i++) {
-            starts[i] = turn === 'L' ? map[starts[i]][0] : map[starts[i]][1];
+            if (!starts[i].endsWith('Z')) {
+                starts[i] = turn === 'L' ? map[starts[i]][0] : map[starts[i]][1];
+
+                if (starts[i].endsWith('Z') && steps[i] === 0) {
+                    steps[i] = totalSteps + 1;
+                }
+            }
         }
 
         totalSteps++;
     }
 
-    return totalSteps;
+    console.log(starts);
+    console.log(steps);
+
+    return lcm(steps);
 }
 
 export function solvePuzzle(input: string) {

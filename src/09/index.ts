@@ -55,7 +55,7 @@ function getNextValue(predictions: Predictons): number {
     let next = Number.MIN_SAFE_INTEGER;
 
     for (let i = predictions.length - 1; i >= 0; i--) {
-        next = predictions[i][predictions[i].length - 1] + prev;
+        next = predictions[i][0] - prev;
         prev = next;
     }
     return next;

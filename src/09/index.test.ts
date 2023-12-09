@@ -1,7 +1,7 @@
 import { solvePuzzle } from './index';
 import { sampleData, realData } from './data';
 
-describe('part 1', () => {
+describe('part 2', () => {
     it('sample', () => {
         const answer = solvePuzzle(realData);
         console.log(answer);

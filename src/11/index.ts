@@ -30,7 +30,7 @@ function prnt(universe: Universe) {
     console.log(out);
 }
 
-function expand(universe: Universe) {
+function getUnoccupiedRegions(universe: Universe) {
     const occupiedRow = new Set<number>();
     const occupiedCol = new Set<number>();
     universe.forEach((row, rowIndex) => {
@@ -57,93 +57,15 @@ function expand(universe: Universe) {
         }
     }
 
-    Array.from(unoccupiedRow)
-        .reverse()
-        .forEach((row) => {
-            universe.splice(row, 0, new Array(columnLength).fill('.'));
-        });
-
-    Array.from(unoccupiedCol)
-        .reverse()
-        .forEach((col) => {
-            universe.forEach((row, index) => {
-                row.splice(col, 0, '.');
-            });
-        });
-}
-
-function shortestPathBfs(first: Galaxy, second: Galaxy, universe: Universe): number {
-    let steps = 0;
-    const queue: { galaxy: Galaxy; distance: number }[] = [{ galaxy: first, distance: 0 }];
-    const visited = new Set<string>();
-
-    while (queue.length) {
-        const { galaxy, distance } = queue.shift()!;
-        const { x, y, key } = galaxy;
-
-        if (visited.has(key)) {
-            continue;
-        }
-
-        visited.add(key);
-        steps = distance;
-
-        if (x === second.x && y === second.y) {
-            // found target
-            return steps;
-        }
-
-        const children: Galaxy[] = [];
-
-        if (x - 1 >= 0) {
-            children.push({
-                x: x - 1,
-                y: y,
-                key: `${x - 1}_${y}`
-            });
-        }
-        if (x + 1 < universe.length) {
-            children.push({
-                x: x + 1,
-                y: y,
-                key: `${x + 1}_${y}`
-            });
-        }
-
-        if (y - 1 >= 0) {
-            children.push({
-                x: x,
-                y: y - 1,
-                key: `${x}_${y - 1}`
-            });
-        }
-
-        if (y + 1 < universe[0].length) {
-            children.push({
-                x: x,
-                y: y + 1,
-                key: `${x}_${y + 1}`
-            });
-        }
-
-        const notVisited = children.filter((g) => !visited.has(g.key));
-
-        if (notVisited.length) {
-            notVisited.forEach((item) => queue.push({ galaxy: item, distance: distance + 1 }));
-        }
-    }
-
-    return -1;
+    return {
+        rows: Array.from(unoccupiedRow),
+        cols: Array.from(unoccupiedCol)
+    };
 }
 
 export function solvePuzzle(input: string) {
     const universe = parseData(input);
-    // prnt(universe);
 
-    // 1. expand the universe by doubling unoccupied columns and rows in REVERSE! - start from the end
-    expand(universe);
-    prnt(universe);
-    // 2. find all pairs of galaxies (#)
     const galaxies: Galaxy[] = [];
     universe.forEach((row, i1) => {
         row.forEach((col, i2) => {
@@ -157,7 +79,7 @@ export function solvePuzzle(input: string) {
         });
     });
 
-    // console.log(galaxies);
+    console.log('number of galaxies: ' + galaxies.length);
     // 3. calculate shortest path for every pair of galaxies after expension
     const pairs: GalaxyPair[] = [];
     for (let i = 0; i < galaxies.length; i++) {
@@ -165,18 +87,60 @@ export function solvePuzzle(input: string) {
             pairs.push({
                 first: galaxies[i],
                 second: galaxies[j],
-                distance: -1
+                distance: calculateDistance(
+                    galaxies[i].x,
+                    galaxies[i].y,
+                    galaxies[j].x,
+                    galaxies[j].y
+                )
             });
         }
     }
 
-    console.log(pairs.length);
-
-    pairs.forEach((pair) => {
-        pair.distance = shortestPathBfs(pair.first, pair.second, universe);
-    });
-    console.log(pairs);
+    extrapolateDistances(universe, pairs);
 
     // 4. sum up shortest paths
     return pairs.reduce((acc, val) => acc + val.distance, 0);
+}
+
+function extrapolateDistances(universe: Universe, pairs: GalaxyPair[]) {
+    const expansionRate = 1000000 - 1;
+
+    const emptyRegions = getUnoccupiedRegions(universe);
+    console.log('empty regions: ' + emptyRegions.rows.length + emptyRegions.cols.length);
+
+    pairs.forEach((pair) => {
+        let emptyRegionsInBetween = 0;
+        emptyRegions.rows.forEach((row) => {
+            if (isBetween(pair.first.x, pair.second.x, row)) {
+                emptyRegionsInBetween += 1;
+            }
+        });
+
+        emptyRegions.cols.forEach((col) => {
+            if (isBetween(pair.first.y, pair.second.y, col)) {
+                emptyRegionsInBetween += 1;
+            }
+        });
+
+        if (emptyRegionsInBetween > 0) {
+            pair.distance = expansionRate * emptyRegionsInBetween + pair.distance;
+        }
+    });
+}
+
+function isBetween(first, second, value) {
+    if (first <= value && value <= second) {
+        return true;
+    }
+
+    if (second <= value && value <= first) {
+        return true;
+    }
+
+    return false;
+}
+
+function calculateDistance(x1: number, y1: number, x2: number, y2: number) {
+    return Math.abs(x2 - x1) + Math.abs(y2 - y1);
 }

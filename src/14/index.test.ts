@@ -1,7 +1,7 @@
 import { solvePuzzle } from './index';
 import { sampleData, realData } from './data';
 
-describe('part 1', () => {
+describe('part 2', () => {
     xit('sampleData', () => {
         const answer = solvePuzzle(sampleData);
         console.log(answer);
@@ -11,6 +11,6 @@ describe('part 1', () => {
     it('realData', () => {
         const answer = solvePuzzle(realData);
         console.log(answer);
-        expect(answer).toBe(110821);
+        expect(answer).toBe(83516);
     });
 });
